@@ -68,6 +68,7 @@ export class GMServer {
       // Handle client disconnect
       socket.on("disconnect", () => {
         console.log("Client websocket disconnected");
+        player.setWebSocket(null);
         this.removePlayer(player);
       });
     });
@@ -93,6 +94,7 @@ export class GMServer {
       // Remove the client from the list when it leaves
       socket.on("end", () => {
         console.log("Client TCP disconnected");
+        player.setTCPSocket(null);
         this.removePlayer(player);
       });
     });
@@ -108,6 +110,7 @@ export class GMServer {
     const time = +new Date();
     for (const player of this.players) {
       if (player.lastMessage + TIMEOUT < time) {
+        console.log("Player timed out, kicking.");
         this.removePlayer(player);
         break;
       }
@@ -189,7 +192,7 @@ export class GMServer {
   }
 
   removePlayer(player: Player) {
-    player.send(new DisconnectPacket())
+    player.send(new DisconnectPacket());
     player.disconnect();
 
     if (player.room != null) {

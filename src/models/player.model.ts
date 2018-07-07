@@ -24,7 +24,9 @@ export class Player {
 
     setTCPSocket(tcpSocket: net.Socket) {
         this.tcpSocket = tcpSocket;
-        this.tcpSocket.setNoDelay(true);
+        if (this.tcpSocket) {
+            this.tcpSocket.setNoDelay(true);
+        }
     }
 
     send(packet: Packet) {
