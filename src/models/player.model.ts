@@ -24,17 +24,22 @@ export class Player {
 
     setTCPSocket(socket: net.Socket) {
         this.tcpSocket = this.tcpSocket;
+        this.tcpSocket.setNoDelay(true);
     }
 
     send(packet: Packet) {
         if (this.websocket) {
             this.websocket.emit("message", packet);
+        } else if (this.tcpSocket) {
+            this.tcpSocket.write(JSON.stringify(packet));
         }
     }
 
     disconnect() {
         if (this.websocket) {
             this.websocket.disconnect();
+        } else if (this.tcpSocket) {
+            this.tcpSocket.end();
         }
     }
 }
