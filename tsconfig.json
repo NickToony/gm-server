@@ -1,0 +1,10 @@
+{
+    "files": [
+      "src/**/*.ts"
+    ],
+    "compilerOptions": {
+      "target": "es5",
+      "outDir": "dist",
+      "rootDir": "src"
+    }
+  }
