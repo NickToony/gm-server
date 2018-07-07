@@ -123,6 +123,13 @@ export class GMServer {
         break;
       }
     }
+
+    for (const room of this.rooms) {
+      if (!room.megaRoom && room.getCount() <= 0) {
+        this.removeRoom(room);
+        break;
+      }
+    }
   }
 
   handleMessage(player: Player, packet: Packet) {
@@ -213,10 +220,6 @@ export class GMServer {
 
     if (player.room != null) {
       player.room.removePlayer(player);
-
-      if (!player.room.megaRoom && player.room.getCount() <= 0) {
-        this.removeRoom(player.room);
-      }
     }
 
     var index = this.players.indexOf(player, 0);

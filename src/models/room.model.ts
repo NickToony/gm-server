@@ -5,7 +5,7 @@ import { HostPacket } from "../packets/host.packet";
 import { HOST_MODE } from "../config";
 
 export class Room {
-    players: Player[];
+    players: Player[] = [];
     host: Player = null;
 
     constructor(public id: string, public megaRoom = false) {
@@ -13,6 +13,10 @@ export class Room {
     }
 
     addPlayer(player: Player) {
+        if (player.room != null) {
+            player.room.removePlayer(player);
+        }
+
         this.players.push(player);
         player.room = this;
         // If no current host
