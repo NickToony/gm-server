@@ -9,6 +9,10 @@ export enum PacketID {
 }
 
 export class Packet {
+    constructor(id: number) {
+        this.id = id;
+    }
+
     id: number;
     player?: number;
 }

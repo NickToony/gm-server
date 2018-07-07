@@ -1,5 +1,7 @@
-import { Packet } from "./packet";
+import { Packet, PacketID } from "./packet";
 
-export class ConnectPacket extends Packet {
-    
+export class DisconnectPacket extends Packet {
+    constructor() {
+        super(PacketID.Disconnect);
+    }
 }

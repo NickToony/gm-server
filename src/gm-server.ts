@@ -14,6 +14,7 @@ import { Room } from "./models/room.model";
 import { HostPacket } from "./packets/host.packet";
 import { ResultPacket } from "./packets/result.packet";
 import { JoinPacket } from "./packets/join.packet";
+import { DisconnectPacket } from "./packets/disconnect.packet";
 
 export class GMServer {
   private app: express.Application;
@@ -188,6 +189,7 @@ export class GMServer {
   }
 
   removePlayer(player: Player) {
+    player.send(new DisconnectPacket())
     player.disconnect();
 
     if (player.room != null) {
