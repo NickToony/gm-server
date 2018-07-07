@@ -157,7 +157,7 @@ export class GMServer {
           // Set the player to that room
           room.addPlayer(player);
           // Tell them the good news
-          player.send(new ResultPacket(true, "Room created and joined."));
+          player.send(new HostPacket());
         } else {
           // Failure :(
           player.send(
@@ -173,10 +173,14 @@ export class GMServer {
         for (const room of this.rooms) {
           if (room.id == name) {
             room.addPlayer(player);
-            player.send(new ResultPacket(true, "Join room"));
+            player.send(new JoinPacket());
             break;
           }
         }
+
+        player.send(
+          new ResultPacket(false, "Room could not be joined with that name.")
+        );
         break;
 
       case PacketID.Leave:

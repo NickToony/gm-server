@@ -2,6 +2,7 @@ import { Player } from "./player.model";
 import { Packet } from "../packets/packet";
 import { KickPacket } from "../packets/kick.packet";
 import { HostPacket } from "../packets/host.packet";
+import { HOST_MODE } from "../config";
 
 export class Room {
     players: Player[];
@@ -37,9 +38,26 @@ export class Room {
       }
 
     send(packet: Packet, notme: Player = null) {
-        for (const otherPlayer of this.players) {
-            if (otherPlayer != notme) {
-                otherPlayer.send(packet);
+        // If not host mode
+        if (!HOST_MODE) {
+            // Send to everyone but me
+            for (const otherPlayer of this.players) {
+                if (otherPlayer != notme) {
+                    otherPlayer.send(packet);
+                }
+            }
+        } else {
+            // If it's the host
+            if (notme == this.host) {
+                // Send to all but me
+                for (const otherPlayer of this.players) {
+                    if (otherPlayer != notme) {
+                        otherPlayer.send(packet);
+                    }
+                }
+            } else {
+                // Only send to host
+                this.host.send(packet);
             }
         }
     }

@@ -12,6 +12,10 @@ Quite simply, it's a middle-man for peer-to-peer games. It accepts new connectio
  - All traffic is passed through the one server. There may be a limited number of users your server can handle depending on how heavy the traffic is.
  - All data is transferred as JSON strings. This isn't efficient in terms of size or processing.
 
+ **Modes**
+ - Peer2Peer mode: All sent messages are broadcast to all other players
+ - Host mode: Messages sent by players are only sent to host. Messages sent by host are sent to all players.
+
 **Building**
 
  - `npm install`
