@@ -1,9 +1,15 @@
 import * as express from "express";
 import * as socketIo from "socket.io";
 import { createServer, Server } from "http";
+import * as net from "net";
 import { Packet, PacketID } from "./packets/packet";
 import { Player } from "./models/player.model";
-import { DEFAULT_PORT, MEGA_ROOM, TIMEOUT } from "./config";
+import {
+  MEGA_ROOM,
+  TIMEOUT,
+  DEFAULT_WS_PORT,
+  DEFAULT_TCP_PORT
+} from "./config";
 import { Room } from "./models/room.model";
 import { HostPacket } from "./packets/host.packet";
 import { ResultPacket } from "./packets/result.packet";
@@ -11,23 +17,17 @@ import { JoinPacket } from "./packets/join.packet";
 
 export class GMServer {
   private app: express.Application;
-  private server: Server;
-  private io: SocketIO.Server;
-  private port: string | number;
   private players: Player[] = [];
   private rooms: Room[] = [];
 
   constructor() {
     // Create the app
     this.app = express();
-    // Create the server
-    this.server = createServer(this.app);
-    // Init IO
-    this.io = socketIo(this.server);
-    // Grab the port
-    this.port = process.env.PORT || DEFAULT_PORT;
 
-    this.begin();
+    // Begin the websockets
+    this.beginWebSocket();
+    // Begin TCP socket
+    this.beginTCPSocket();
 
     if (MEGA_ROOM) {
       this.addRoom(new Room("0", true));
@@ -36,16 +36,26 @@ export class GMServer {
     this.update();
   }
 
-  begin(): void {
+  beginWebSocket(): void {
+    // Create the server
+    const server = createServer(this.app);
+
+    // Grab the port
+    const port = process.env.WS_PORT || DEFAULT_WS_PORT;
+
+    // Init IO
+    const io = socketIo(server);
+
     // Open the server on the correct port
-    this.server.listen(this.port, () => {
-      console.log("Running server on port %s", this.port);
+    server.listen(port, () => {
+      console.log("Running websocket server on port %s", port);
     });
 
     // Handle client connected
-    this.io.on("connect", (socket: any) => {
-      console.log("Connected client on port %s.", this.port);
-      const player = new Player(socket);
+    io.on("connect", (socket: socketIo.Socket) => {
+      console.log("Connected websocket client on port %s.", port);
+      const player = new Player();
+      player.setWebSocket(socket);
       this.addPlayer(player);
 
       // Handle client message
@@ -56,16 +66,45 @@ export class GMServer {
 
       // Handle client disconnect
       socket.on("disconnect", () => {
-        console.log("Client disconnected");
+        console.log("Client websocket disconnected");
         this.removePlayer(player);
       });
+    });
+  }
+
+  beginTCPSocket() {
+    // Grab the port
+    const port = process.env.TCP_PORT || DEFAULT_TCP_PORT;
+
+    // Create the server
+    const server = net.createServer((socket) => {
+      console.log("Connected TCP client on port %s.", port);
+      const player = new Player();
+      player.setTCPSocket(socket);
+      this.addPlayer(player);
+
+      // Handle incoming messages from clients.
+      socket.on("data", function(data) {
+        const packet = JSON.parse(data.toString()) as Packet;
+        this.handleMessage(player, packet);
+      });
+
+      // Remove the client from the list when it leaves
+      socket.on("end", function() {
+        console.log("Client TCP disconnected");
+        this.removePlayer(player);
+      });
+    });
+
+    server.listen(port, () => {
+      console.log("Running TCP server on port %s", port);
     });
   }
 
   update() {
     setTimeout(() => this.update(), 1000);
 
-    const time = + new Date();
+    const time = +new Date();
     for (const player of this.players) {
       if (player.lastMessage + TIMEOUT < time) {
         this.removePlayer(player);
@@ -75,8 +114,7 @@ export class GMServer {
   }
 
   handleMessage(player: Player, packet: Packet) {
-    
-    player.lastMessage = + new Date();
+    player.lastMessage = +new Date();
 
     switch (packet.id) {
       case PacketID.Disconnect:
@@ -150,7 +188,7 @@ export class GMServer {
   }
 
   removePlayer(player: Player) {
-    player.socket.disconnect();
+    player.disconnect();
 
     if (player.room != null) {
       player.room.removePlayer(player);

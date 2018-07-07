@@ -1,6 +1,7 @@
 import { Socket } from "socket.io";
 import { Room } from "./room.model";
 import { Packet } from "../packets/packet";
+import * as net from "net";
 
 var LAST_NUM = 0;
 
@@ -9,12 +10,31 @@ export class Player {
     id: number;
     lastMessage = + new Date();
 
-    constructor(public socket: Socket) {
+    websocket: Socket;
+    tcpSocket: net.Socket;
+
+    constructor() {
         this.id = LAST_NUM;
         LAST_NUM += 1;
     }
 
+    setWebSocket(websocket: Socket) {
+        this.websocket = websocket;
+    }
+
+    setTCPSocket(socket: net.Socket) {
+        this.tcpSocket = this.tcpSocket;
+    }
+
     send(packet: Packet) {
-        this.socket.emit("message", packet);
+        if (this.websocket) {
+            this.websocket.emit("message", packet);
+        }
+    }
+
+    disconnect() {
+        if (this.websocket) {
+            this.websocket.disconnect();
+        }
     }
 }
