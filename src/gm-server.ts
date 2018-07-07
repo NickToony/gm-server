@@ -61,8 +61,12 @@ export class GMServer {
 
       // Handle client message
       socket.on("message", (m: Packet) => {
-        const packet = m as Packet;
-        this.handleMessage(player, packet);
+        try {
+          const packet = m as Packet;
+          this.handleMessage(player, packet);
+        } catch (e) {
+          console.log(e);
+        }
       });
 
       // Handle client disconnect
@@ -79,16 +83,20 @@ export class GMServer {
     const port = process.env.TCP_PORT || DEFAULT_TCP_PORT;
 
     // Create the server
-    const server = net.createServer((socket) => {
+    const server = net.createServer(socket => {
       console.log("Connected TCP client on port %s.", port);
       const player = new Player();
       player.setTCPSocket(socket);
       this.addPlayer(player);
 
       // Handle incoming messages from clients.
-      socket.on("data", (data) => {
-        const packet = JSON.parse(data.toString()) as Packet;
-        this.handleMessage(player, packet);
+      socket.on("data", data => {
+        try {
+          const packet = JSON.parse(data.toString().trim());
+          this.handleMessage(player, packet);
+        } catch (e) {
+          console.log(e);
+        }
       });
 
       // Remove the client from the list when it leaves
@@ -178,6 +186,10 @@ export class GMServer {
         }
         break;
 
+      case PacketID.Ping:
+        // do nothing
+        break;
+
       default:
         packet.id = player.id;
         if (player.room != null) {
@@ -210,10 +222,12 @@ export class GMServer {
   }
 
   addRoom(room: Room) {
+    console.log("Added room with name: " + room.id);
     this.rooms.push(room);
   }
 
   removeRoom(room: Room) {
+    console.log("Removed room with name: " + room.id);
     room.kickAll("Room closed");
 
     var index = this.rooms.indexOf(room, 0);
@@ -247,8 +261,7 @@ export class GMServer {
 
   makeid() {
     var text = "";
-    var possible =
-      "0123456789";
+    var possible = "0123456789";
 
     for (var i = 0; i < 4; i++)
       text += possible.charAt(Math.floor(Math.random() * possible.length));

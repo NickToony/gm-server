@@ -5,7 +5,8 @@ export enum PacketID {
     Result = -3,
     Host = -4,
     Join = -5,
-    Leave = -6
+    Leave = -6,
+    Ping = -7
 }
 
 export class Packet {
