@@ -1,10 +1,11 @@
 import { Player } from "./player.model";
 import { Packet } from "../packets/packet";
 import { KickPacket } from "../packets/kick.packet";
+import { HostPacket } from "../packets/host.packet";
 
 export class Room {
     players: Player[];
-    host: Player;
+    host: Player = null;
 
     constructor(public id: string, public megaRoom = false) {
 
@@ -12,6 +13,12 @@ export class Room {
 
     addPlayer(player: Player) {
         this.players.push(player);
+        player.room = this;
+        // If no current host
+        if (this.host == null) {
+            // Use this player
+            this.setHost(player);
+        }
     }
 
     removePlayer(player: Player) {
@@ -19,6 +26,13 @@ export class Room {
         var index = this.players.indexOf(player, 0);
         if (index > -1) {
            this.players.splice(index, 1);
+        }
+
+        if (this.host == player) {
+            this.host = null;
+            if (this.getCount() > 0) {
+                this.setHost(this.players[0]);
+            }
         }
       }
 
@@ -53,5 +67,10 @@ export class Room {
 
     getCount() {
         return this.players.length;
+    }
+
+    setHost(player: Player) {
+        this.host = player;
+        player.send(new HostPacket);
     }
 }

@@ -89,8 +89,7 @@ export class GMServer {
           var room = new Room(name);
           this.addRoom(room);
           // Set the player to that room
-          player.room = room;
-          room.host = player;
+          room.addPlayer(player);
           // Tell them the good news
           player.send(new ResultPacket(true, "Room created and joined."));
         } else {
@@ -107,7 +106,7 @@ export class GMServer {
 
         for (const room of this.rooms) {
           if (room.id == name) {
-            player.room = room;
+            room.addPlayer(player);
             player.send(new ResultPacket(true, "Join room"));
             break;
           }
