@@ -84,13 +84,13 @@ export class GMServer {
       this.addPlayer(player);
 
       // Handle incoming messages from clients.
-      socket.on("data", function(data) {
+      socket.on("data", (data) => {
         const packet = JSON.parse(data.toString()) as Packet;
         this.handleMessage(player, packet);
       });
 
       // Remove the client from the list when it leaves
-      socket.on("end", function() {
+      socket.on("end", () => {
         console.log("Client TCP disconnected");
         this.removePlayer(player);
       });

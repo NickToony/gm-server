@@ -22,8 +22,8 @@ export class Player {
         this.websocket = websocket;
     }
 
-    setTCPSocket(socket: net.Socket) {
-        this.tcpSocket = this.tcpSocket;
+    setTCPSocket(tcpSocket: net.Socket) {
+        this.tcpSocket = tcpSocket;
         this.tcpSocket.setNoDelay(true);
     }
 
