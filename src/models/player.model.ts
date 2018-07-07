@@ -7,6 +7,7 @@ var LAST_NUM = 0;
 export class Player {
     room: Room;
     id: number;
+    lastMessage = + new Date();
 
     constructor(public socket: Socket) {
         this.id = LAST_NUM;

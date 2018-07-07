@@ -3,7 +3,7 @@ import * as socketIo from "socket.io";
 import { createServer, Server } from "http";
 import { Packet, PacketID } from "./packets/packet";
 import { Player } from "./models/player.model";
-import { DEFAULT_PORT, MEGA_ROOM } from "./config";
+import { DEFAULT_PORT, MEGA_ROOM, TIMEOUT } from "./config";
 import { Room } from "./models/room.model";
 import { HostPacket } from "./packets/host.packet";
 import { ResultPacket } from "./packets/result.packet";
@@ -32,6 +32,8 @@ export class GMServer {
     if (MEGA_ROOM) {
       this.addRoom(new Room("0", true));
     }
+
+    this.update();
   }
 
   begin(): void {
@@ -60,8 +62,22 @@ export class GMServer {
     });
   }
 
+  update() {
+    setTimeout(() => this.update(), 1000);
+
+    const time = + new Date();
+    for (const player of this.players) {
+      if (player.lastMessage + TIMEOUT < time) {
+        this.removePlayer(player);
+        break;
+      }
+    }
+  }
+
   handleMessage(player: Player, packet: Packet) {
     
+    player.lastMessage = + new Date();
+
     switch (packet.id) {
       case PacketID.Disconnect:
         this.removePlayer(player);
